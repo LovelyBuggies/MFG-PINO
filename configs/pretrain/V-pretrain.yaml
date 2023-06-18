@@ -1,0 +1,36 @@
+data:
+  name: Burgers
+  datapath: '../data/non-sep-Vs.mat'
+  total_num: 1
+  offset: 0
+  n_sample: 1
+  nx: 8
+  nt: 7
+  sub: 1
+  sub_t: 1
+
+model:
+  layers: [16, 24, 24, 32, 32]
+  modes1: [5, 5, 5, 5]
+  modes2: [5, 5, 5, 5]
+  fc_dim: 64
+  act: gelu
+  num_pad: 4
+
+train:
+  batchsize: 1
+  epochs: 500
+  milestones: [150, 300, 450]
+  base_lr: 0.001
+  scheduler_gamma: 0.5
+  ic_loss: 5
+  f_loss: 100
+  xy_loss: 0.0
+  save_dir: 'test-V'
+  save_name: 'test-V.pt'
+
+log:
+  project: PINO-lwr-pretrain
+  group: gelu-eqn
+  entity: hzzheng-pino
+

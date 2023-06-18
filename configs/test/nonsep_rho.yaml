@@ -1,0 +1,28 @@
+data:
+  name: 'Darcy'
+  datapath: '../data/non-sep-rhos.mat'
+  datapath_V: '../data/non-sep-Vs.mat'
+  total_num: 10
+  offset: 8s
+  n_sample: 2
+  nx: 8
+  nt: 7
+  sub: 1
+  sub_t: 1
+
+model:
+  layers: [16, 24, 24, 32, 32]
+  modes1: [5, 5, 5, 5]
+  modes2: [5, 5, 5, 5]
+  fc_dim: 64
+  act: gelu
+
+test:
+  batchsize: 1
+  ckpt: 'checkpoints/lwr-FDM/lwr-0.5u-pretrain-eqn.pt'
+
+log:
+  project: 'PINO-lwr-test'
+  group: 'gelu-test'
+
+

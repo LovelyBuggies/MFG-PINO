@@ -1,0 +1,29 @@
+data:
+  name: 'Darcy'
+  datapath_rho: '../data/non-sep-rhos.mat'
+  datapath_V: '../data/non-sep-Vs.mat'
+  total_num: 10
+  offset: 0
+  n_sample: 4
+  nx: 8
+  nt: 7
+  sub: 1
+  sub_t: 1
+
+model:
+  layers: [16, 24, 24, 32, 32]
+  modes1: [5, 5, 5, 5]
+  modes2: [5, 5, 5, 5]
+  fc_dim: 64
+  act: gelu
+
+test:
+  batchsize: 1
+  ckpt_rho: 'checkpoints/nonsep-couple-rho/nonsep-couple-rho.pt'
+  ckpt_V: 'checkpoints/nonsep-couple-V/nonsep-couple-V.pt'
+
+log:
+  project: 'PINO-lwr-test'
+  group: 'gelu-test'
+
+
