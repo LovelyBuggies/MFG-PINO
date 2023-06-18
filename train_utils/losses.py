@@ -287,10 +287,10 @@ def FDM_nonsep_u(rho, u, D=1):
             for j, s in enumerate((V[:, t + 1, i] - V[:, t + 1, i + 1]) / delta_t + 1 - rho[:, t, i]):
                 u[j, t, i] = min(max(s, 0), 1)
 
-            # V[:, t, i] = delta_t * (0.5 * u[:, t, i] ** 2 + rho[:, t, i] * u[:, t, i] - u[:, t, i]) + \
-            #               (1 - u[:, t, i]) * V[:, t + 1, i] + u[:, t, i] * V[:, t + 1, i + 1]
-            V[:, t, i] = (delta_t * 0.5 * (1 - u[:, t, i] - rho[:, t, i])** 2).to("cuda:0") + \
-                         (1 - u[:, t, i]) * V[:, t + 1, i] + u[:, t, i] * V[:, t + 1, i + 1]
+            V[:, t, i] = delta_t * (0.5 * u[:, t, i] ** 2 + rho[:, t, i] * u[:, t, i] - u[:, t, i]) + \
+                          (1 - u[:, t, i]) * V[:, t + 1, i] + u[:, t, i] * V[:, t + 1, i + 1]
+            # V[:, t, i] = (delta_t * 0.5 * (1 - u[:, t, i] - rho[:, t, i])** 2).to("cuda:0") + \
+            #              (1 - u[:, t, i]) * V[:, t + 1, i] + u[:, t, i] * V[:, t + 1, i + 1]
 
         V[:, t, 8] = V[:, t, 0]
     # Vx = (V[:, :, 1:] - V[:, :, :-1]) / (1 / 8)
@@ -309,7 +309,7 @@ def FDM_nonsep_u(rho, u, D=1):
     u_h = torch.fft.fft(u, dim=2)
     rho_h = torch.fft.fft(rho, dim=2)
     # Wavenumbers in y-direction
-    k_max = nx//2
+    # k_max = nx//2
     # k_x = torch.cat((torch.arange(start=0, end=k_max, step=1, device=u.device),
     #                  torch.arange(start=-k_max, end=0, step=1, device=u.device)), 0).reshape(1,1,nx)
     # ux_h = 2j * np.pi*k_x*u_h
