@@ -1,10 +1,11 @@
 data:
   name: 'Darcy'
   datapath: '../data/non-sep-Vs.mat'
+  datapath_V: '../data/non-sep-rhos.mat'
   total_num: 1
   offset: 0
   n_sample: 1
-  nx: 8
+  nx: 9
   nt: 7
   sub: 1
   sub_t: 1
