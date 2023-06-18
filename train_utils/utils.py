@@ -1,157 +1,9 @@
 import os
 import numpy as np
 import torch
-
-
-def vor2vel(w, L=2 * np.pi):
-    '''
-    Convert vorticity into velocity
-    Args:
-        w: vorticity with shape (batchsize, num_x, num_y, num_t)
-
-    Returns:
-        ux, uy with the same shape
-    '''
-    batchsize = w.size(0)
-    nx = w.size(1)
-    ny = w.size(2)
-    nt = w.size(3)
-    device = w.device
-    w = w.reshape(batchsize, nx, ny, nt)
-
-    w_h = torch.fft.fft2(w, dim=[1, 2])
-    # Wavenumbers in y-direction
-    k_max = nx // 2
-    N = nx
-    k_x = torch.cat((torch.arange(start=0, end=k_max, step=1, device=device),
-                     torch.arange(start=-k_max, end=0, step=1, device=device)), 0) \
-        .reshape(N, 1).repeat(1, N).reshape(1, N, N, 1)
-    k_y = torch.cat((torch.arange(start=0, end=k_max, step=1, device=device),
-                     torch.arange(start=-k_max, end=0, step=1, device=device)), 0) \
-        .reshape(1, N).repeat(N, 1).reshape(1, N, N, 1)
-    # Negative Laplacian in Fourier space
-    lap = (k_x ** 2 + k_y ** 2)
-    lap[0, 0, 0, 0] = 1.0
-    f_h = w_h / lap
-
-    ux_h = 2 * np.pi / L * 1j * k_y * f_h
-    uy_h = -2 * np.pi / L * 1j * k_x * f_h
-
-    ux = torch.fft.irfft2(ux_h[:, :, :k_max + 1], dim=[1, 2])
-    uy = torch.fft.irfft2(uy_h[:, :, :k_max + 1], dim=[1, 2])
-    return ux, uy
-
-
-def get_sample(N, T, s, p, q):
-    # sample p nodes from Initial Condition, p nodes from Boundary Condition, q nodes from Interior
-
-    # sample IC
-    index_ic = torch.randint(s, size=(N, p))
-    sample_ic_t = torch.zeros(N, p)
-    sample_ic_x = index_ic/s
-
-    # sample BC
-    sample_bc = torch.rand(size=(N, p//2))
-    sample_bc_t =  torch.cat([sample_bc, sample_bc],dim=1)
-    sample_bc_x = torch.cat([torch.zeros(N, p//2), torch.ones(N, p//2)],dim=1)
-
-    # sample I
-    # sample_i_t = torch.rand(size=(N,q))
-    # sample_i_t = torch.rand(size=(N,q))**2
-    sample_i_t = -torch.cos(torch.rand(size=(N, q))*np.pi/2) + 1
-    sample_i_x = torch.rand(size=(N,q))
-
-    sample_t = torch.cat([sample_ic_t, sample_bc_t, sample_i_t], dim=1).cuda()
-    sample_t.requires_grad = True
-    sample_x = torch.cat([sample_ic_x, sample_bc_x, sample_i_x], dim=1).cuda()
-    sample_x.requires_grad = True
-    sample = torch.stack([sample_t, sample_x], dim=-1).reshape(N, (p+p+q), 2)
-    return sample, sample_t, sample_x, index_ic.long()
-
-
-def get_grid(N, T, s):
-    gridt = torch.tensor(np.linspace(0, 1, T), dtype=torch.float).reshape(1, T, 1).repeat(N, 1, s).cuda()
-    gridt.requires_grad = True
-    gridx = torch.tensor(np.linspace(0, 1, s+1)[:-1], dtype=torch.float).reshape(1, 1, s).repeat(N, T, 1).cuda()
-    gridx.requires_grad = True
-    grid = torch.stack([gridt, gridx], dim=-1).reshape(N, T*s, 2)
-    return grid, gridt, gridx
-
-
-def get_2dgrid(S):
-    '''
-    get array of points on 2d grid in (0,1)^2
-    Args:
-        S: resolution
-
-    Returns:
-        points: flattened grid, ndarray (N, 2)
-    '''
-    xarr = np.linspace(0, 1, S)
-    yarr = np.linspace(0, 1, S)
-    xx, yy = np.meshgrid(xarr, yarr, indexing='ij')
-    points = np.stack([xx.ravel(), yy.ravel()], axis=0).T
-    return points
-
-
-def torch2dgrid(num_x, num_y, bot=(0,0), top=(1,1)):
-    x_bot, y_bot = bot
-    x_top, y_top = top
-    x_arr = torch.linspace(x_bot, x_top, steps=num_x)
-    y_arr = torch.linspace(y_bot, y_top, steps=num_y)
-    xx, yy = torch.meshgrid(x_arr, y_arr, indexing='ij')
-    mesh = torch.stack([xx, yy], dim=2)
-    return mesh
-
-
-def get_grid3d(S, T, time_scale=1.0, device='cpu'):
-    gridx = torch.tensor(np.linspace(0, 1, S + 1)[:-1], dtype=torch.float, device=device)
-    gridx = gridx.reshape(1, S, 1, 1, 1).repeat([1, 1, S, T, 1])
-    gridy = torch.tensor(np.linspace(0, 1, S + 1)[:-1], dtype=torch.float, device=device)
-    gridy = gridy.reshape(1, 1, S, 1, 1).repeat([1, S, 1, T, 1])
-    gridt = torch.tensor(np.linspace(0, 1 * time_scale, T), dtype=torch.float, device=device)
-    gridt = gridt.reshape(1, 1, 1, T, 1).repeat([1, S, S, 1, 1])
-    return gridx, gridy, gridt
-
-
-def convert_ic(u0, N, S, T, time_scale=1.0):
-    u0 = u0.reshape(N, S, S, 1, 1).repeat([1, 1, 1, T, 1])
-    gridx, gridy, gridt = get_grid3d(S, T, time_scale=time_scale, device=u0.device)
-    a_data = torch.cat((gridx.repeat([N, 1, 1, 1, 1]), gridy.repeat([N, 1, 1, 1, 1]),
-                        gridt.repeat([N, 1, 1, 1, 1]), u0), dim=-1)
-    return a_data
-
-
-
-def requires_grad(model, flag=True):
-    for p in model.parameters():
-        p.requires_grad = flag
-
-
-def set_grad(tensors, flag=True):
-    for p in tensors:
-        p.requires_grad = flag
-
-
-def zero_grad(params):
-    '''
-    set grad field to 0
-    '''
-    if isinstance(params, torch.Tensor):
-        if params.grad is not None:
-            params.grad.zero_()
-    else:
-        for p in params:
-            if p.grad is not None:
-                p.grad.zero_()
-
-
-def count_params(net):
-    count = 0
-    for p in net.parameters():
-        count += p.numel()
-    return count
-
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 def save_checkpoint(path, name, model, optimizer=None):
     ckpt_dir = 'checkpoints/%s/' % path
@@ -174,28 +26,76 @@ def save_checkpoint(path, name, model, optimizer=None):
     print('Checkpoint is saved at %s' % ckpt_dir + name)
 
 
+def plot_3d(n_x, n_t, rho, ax_name, fig_name=None):
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.gca(projection="3d")
+    x = np.linspace(0, 1, n_x)
+    t = np.linspace(0, 1, n_t)
+    t_mesh, x_mesh = np.meshgrid(t, x)
+    surf = ax.plot_surface(
+        x_mesh, t_mesh, rho, cmap=cm.jet, linewidth=0, antialiased=False
+    )
+    ax.grid(False)
+    ax.tick_params(axis="both", which="major", labelsize=18, pad=10)
 
-def save_ckpt(path, model, optimizer=None, scheduler=None):
-    model_state = model.state_dict()
-    if optimizer:
-        optim_state = optimizer.state_dict()
+    ax.set_xlabel(r"$x$", fontsize=24, labelpad=20)
+    ax.set_xlim(min(x), max(x))
+    ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+    ax.xaxis.set_major_locator(LinearLocator(5))
+    ax.xaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+
+    plt.ylabel(r"$t$", fontsize=24, labelpad=20)
+    ax.set_ylim(min(t), max(t))
+    ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+    ax.yaxis.set_major_locator(LinearLocator(5))
+    ax.yaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+
+    ax.set_zlabel(ax_name, fontsize=24, labelpad=20, rotation=90)
+    ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+    ax.zaxis.set_major_locator(LinearLocator(5))
+    ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+    ax.view_init(elev=25, azim=-128)
+    if not fig_name:
+        plt.show()
     else:
-        optim_state = None
-    
-    if scheduler:
-        scheduler_state = scheduler.state_dict()
-    else:
-        scheduler_state = None
-    torch.save({
-        'model': model_state, 
-        'optim': optim_state, 
-        'scheduler': scheduler_state
-    }, path)
-    print(f'Checkpoint is saved to {path}')
+        plt.savefig(fig_name, bbox_inches="tight")
 
 
-def dict2str(log_dict):
-    res = ''
-    for key, value in log_dict.items():
-        res += f'{key}: {value}|'
-    return res
+def plot_diff(fig_path=None):
+    fig, ax = plt.subplots(figsize=(8, 4))
+    rho_gap_hist = pd.read_csv(f"./diff/gap.csv")[
+        "0"
+    ].values.tolist()
+    plt.plot(
+        savgol_filter([r for r in rho_gap_hist], 33, 3),
+        lw=6,
+        label=r"$|\rho^{(i)} - \rho^{(i-1)}|$",
+        c="indianred",
+        alpha=0.8,
+    )
+    plt.xlabel("iterations", fontsize=24, labelpad=6)
+    plt.xticks(fontsize=24)
+    plt.ylabel("convergence gap", fontsize=24, labelpad=6)
+    plt.yticks(fontsize=24)
+    # plt.ylim(-0.01, 0.15)
+    plt.legend(prop={"size": 24})
+    plt.savefig(f"{fig_path}/gap.pdf", bbox_inches="tight")
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    rho_loss_hist = pd.read_csv(f"./diff/loss.csv")[
+        "0"
+    ].values.tolist()
+    plt.plot(
+        rho_loss_hist,
+        lw=6,
+        label=r"$|\rho^{(i)} - \rho^*|$",
+        c="steelblue",
+        alpha=0.8,
+    )
+    plt.xlabel("iterations", fontsize=24, labelpad=6)
+    plt.xticks(fontsize=24)
+    plt.ylabel("loss", fontsize=24, labelpad=6)
+    plt.yticks(fontsize=24)
+    # plt.ylim(-0.01, 0.15)
+    plt.legend(prop={"size": 24})
+    plt.savefig(f"{fig_path}/loss.pdf", bbox_inches="tight")

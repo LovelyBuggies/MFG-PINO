@@ -7,7 +7,7 @@ from matplotlib import cm
 import scipy.io as sio
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
-from .losses import LpLoss, darcy_loss, PINO_loss
+from .losses import PINO_loss_V, PINO_loss_rho, LpLoss
 
 try:
     import wandb
@@ -82,13 +82,13 @@ def eval_burgers(model,
         x, y = x.to(device), y.to(device)
         out = model(x).reshape(y.shape)
         rho = torch.transpose(torch.squeeze(out, 0), 0, 1).cpu().detach().numpy()
-        plot_3d(8, 8, rho, 'pre')
-        sio.savemat('rho.mat', {'rho': rho})
+        plot_3d(8, 8, rho[:8, :8], 'pre')
+        # sio.savemat('rho.mat', {'rho': rho})
         data_loss = myloss(out, y)
 
-        loss_u, f_loss = PINO_loss(out, x[:, 0, :, 0], v)
-        test_err.append(data_loss.item())
-        f_err.append(f_loss.item())
+        # loss_u, f_loss = PINO_loss_V(out, x[:, 0, :, 0], v)
+        # test_err.append(data_loss.item())
+        # f_err.append(f_loss.item())
 
     mean_f_err = np.mean(f_err)
     std_f_err = np.std(f_err, ddof=1) / np.sqrt(len(f_err))

@@ -7,9 +7,6 @@ from train_utils import Adam
 from train_utils.datasets import BurgersLoader
 from train_utils.train_2d import train_2d_burger
 from train_utils.eval_2d import eval_burgers
-import matplotlib.pyplot as plt
-import pandas as pd
-from scipy.signal import savgol_filter
 
 
 def run(args, config):
@@ -75,46 +72,6 @@ def test(config):
         model.load_state_dict(ckpt['model'])
         print('Weights loaded from %s' % ckpt_path)
     eval_burgers(model, dataloader, dataset.v, config, device)
-
-
-def plot_diff(fig_path=None):
-    fig, ax = plt.subplots(figsize=(8, 4))
-    rho_gap_hist = pd.read_csv(f"./diff/gap.csv")[
-        "0"
-    ].values.tolist()
-    plt.plot(
-        savgol_filter([r for r in rho_gap_hist], 33, 3),
-        lw=6,
-        label=r"$|\rho^{(i)} - \rho^{(i-1)}|$",
-        c="indianred",
-        alpha=0.8,
-    )
-    plt.xlabel("iterations", fontsize=24, labelpad=6)
-    plt.xticks(fontsize=24)
-    plt.ylabel("convergence gap", fontsize=24, labelpad=6)
-    plt.yticks(fontsize=24)
-    # plt.ylim(-0.01, 0.15)
-    plt.legend(prop={"size": 24})
-    plt.savefig(f"{fig_path}/gap.pdf", bbox_inches="tight")
-
-    fig, ax = plt.subplots(figsize=(8, 4))
-    rho_loss_hist = pd.read_csv(f"./diff/loss.csv")[
-        "0"
-    ].values.tolist()
-    plt.plot(
-        rho_loss_hist,
-        lw=6,
-        label=r"$|\rho^{(i)} - \rho^*|$",
-        c="steelblue",
-        alpha=0.8,
-    )
-    plt.xlabel("iterations", fontsize=24, labelpad=6)
-    plt.xticks(fontsize=24)
-    plt.ylabel("loss", fontsize=24, labelpad=6)
-    plt.yticks(fontsize=24)
-    # plt.ylim(-0.01, 0.15)
-    plt.legend(prop={"size": 24})
-    plt.savefig(f"{fig_path}/loss.pdf", bbox_inches="tight")
 
 
 if __name__ == '__main__':

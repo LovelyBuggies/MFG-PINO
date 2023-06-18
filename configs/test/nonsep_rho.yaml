@@ -2,9 +2,9 @@ data:
   name: 'Darcy'
   datapath: '../data/non-sep-rhos.mat'
   datapath_V: '../data/non-sep-Vs.mat'
-  total_num: 10
-  offset: 8s
-  n_sample: 2
+  total_num: 1
+  offset: 0
+  n_sample: 1
   nx: 8
   nt: 7
   sub: 1
