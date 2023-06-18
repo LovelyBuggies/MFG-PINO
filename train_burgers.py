@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 import yaml
 
 import torch
-from models import FNO2d_rho
+from models import FNO2d_rho, FNO2d_V
 from train_utils import Adam
 from train_utils.datasets import BurgersLoader
 from train_utils.train_2d import train_2d_burger
