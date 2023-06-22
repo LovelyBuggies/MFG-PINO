@@ -60,8 +60,10 @@ def FDM_nonsep_u(rho, u, D=1):
             for j, s in enumerate((V[:, t + 1, i] - V[:, t + 1, i + 1]) / delta_t + 1 - rho[:, t, i]):
                 u[j, t, i] = min(max(s, 0), 1)
 
+            # Non-sep:
             V[:, t, i] = delta_t * (0.5 * u[:, t, i] ** 2 + rho[:, t, i] * u[:, t, i] - u[:, t, i]) + \
                           (1 - u[:, t, i]) * V[:, t + 1, i] + u[:, t, i] * V[:, t + 1, i + 1]
+            # LWR:
             # V[:, t, i] = (delta_t * 0.5 * (1 - u[:, t, i] - rho[:, t, i])** 2).to("cuda:0") + \
             #              (1 - u[:, t, i]) * V[:, t + 1, i] + u[:, t, i] * V[:, t + 1, i + 1]
 
