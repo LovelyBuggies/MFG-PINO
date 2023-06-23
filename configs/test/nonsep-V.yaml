@@ -1,5 +1,5 @@
 data:
-  name: 'Darcy'
+  name: 'PINO'
   datapath: '../data/non-sep-Vs.mat'
   datapath_V: '../data/non-sep-rhos.mat'
   total_num: 1
@@ -19,10 +19,10 @@ model:
 
 test:
   batchsize: 1
-  ckpt: 'checkpoints/test-V/test-V.pt'
+  ckpt: 'checkpoints/test/test-V.pt'
 
 log:
-  project: 'PINO-lwr-test'
+  project: 'PINO-test'
   group: 'gelu-test'
 
 

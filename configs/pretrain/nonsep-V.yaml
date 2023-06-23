@@ -1,5 +1,5 @@
 data:
-  name: Burgers
+  name: PINO
   datapath: '../data/non-sep-Vs.mat'
   datapath_V: '../data/non-sep-rhos.mat'
   total_num: 1
@@ -31,7 +31,6 @@ train:
   save_name: 'test-V.pt'
 
 log:
-  project: PINO-lwr-pretrain
+  project: PINO-train
   group: gelu-eqn
-  entity: hzzheng-pino
 

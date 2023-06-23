@@ -25,15 +25,14 @@ def eval_burgers(model,
 
     test_err = []
     f_err = []
-
     for x, y in pbar:
         x, y = x.to(device), y.to(device)
+        print(x.shape, y.shape)
         out = model(x).reshape(y.shape)
-        rho = torch.transpose(torch.squeeze(out, 0), 0, 1).cpu().detach().numpy()
-        plot_3d(8, 8, rho[:8, :8], 'pre')
-        # sio.savemat('rho.mat', {'rho': rho})
-        data_loss = myloss(out, y)
-
+        out = torch.transpose(torch.squeeze(out, 0), 0, 1).cpu().detach().numpy()
+        plot_3d(8, 8, out[:8, :], 'pre')
+        # sio.savemat('rho.mat', {'rho': out})
+        # data_loss = myloss(out, y)
         # loss_u, f_loss = PINO_loss_V(out, x[:, 0, :, 0], v)
         # test_err.append(data_loss.item())
         # f_err.append(f_loss.item())

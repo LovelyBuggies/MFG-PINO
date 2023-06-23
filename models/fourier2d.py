@@ -170,5 +170,4 @@ class FNO2d_V(nn.Module):
         x = self.fc2(x)
         x = self.act(x)
         x = self.fc3(x)
-        x = torch.tanh(x) / 2
         return x
