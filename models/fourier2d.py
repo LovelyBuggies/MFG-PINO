@@ -31,7 +31,6 @@ class FNO2d_rho(nn.Module):
         self.modes2 = modes2
     
         self.pad_ratio = pad_ratio
-        # input channel is 3: (a(x, y), x, y)
         if layers is None:
             self.layers = [width] * (len(modes1) + 1)
         else:
@@ -85,7 +84,6 @@ class FNO2d_rho(nn.Module):
         x = self.fc2(x)
         x = self.act(x)
         x = self.fc3(x)
-        x = (torch.tanh(x) + 1) / 2
         return x
 
 

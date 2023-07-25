@@ -50,52 +50,40 @@ class LpLoss(object):
         return self.rel(x, y)
 
 def FDM_nonsep_u(rho, u, D=1):
-    V = torch.zeros([rho.shape[0], 9, 9], dtype=torch.float32)
-    u = torch.zeros([rho.shape[0], 8, 8], dtype=torch.float32)
-    V = V.to("cuda:0")
-    u = u.to("cuda:0")
-    delta_t = 1 / 8
-    for t in range(7, -1, -1):
-        for i in range(8):
-            for j, s in enumerate((V[:, t + 1, i] - V[:, t + 1, i + 1]) / delta_t + 1 - rho[:, t, i]):
+    n_samples, nt, nx = rho.shape
+    V = torch.zeros([n_samples, nt + 1, nx + 1], dtype=torch.float32).to("cuda:0")
+    u = torch.zeros([n_samples, nt, nx], dtype=torch.float32).to("cuda:0")
+    dx, dt = 1 / nx, 1 / nt
+    for t in range(nt - 1, -1, -1):
+        for i in range(nx):
+            for j, s in enumerate((V[:, t + 1, i] - V[:, t + 1, i + 1]) / dx + 1 - rho[:, t, i]):
                 u[j, t, i] = min(max(s, 0), 1)
 
             # Non-sep:
-            V[:, t, i] = delta_t * (0.5 * u[:, t, i] ** 2 + rho[:, t, i] * u[:, t, i] - u[:, t, i]) + \
+            V[:, t, i] = dt * (0.5 * u[:, t, i] ** 2 + rho[:, t, i] * u[:, t, i] - u[:, t, i]) + \
                           (1 - u[:, t, i]) * V[:, t + 1, i] + u[:, t, i] * V[:, t + 1, i + 1]
             # LWR:
             # V[:, t, i] = (delta_t * 0.5 * (1 - u[:, t, i] - rho[:, t, i])** 2).to("cuda:0") + \
             #              (1 - u[:, t, i]) * V[:, t + 1, i] + u[:, t, i] * V[:, t + 1, i + 1]
 
-        V[:, t, 8] = V[:, t, 0]
+        V[:, t, -1] = V[:, t, 0]
 
     V_terminal = 0
-    V[:, 8, :] = V_terminal
-    u = u.detach()
-    batchsize = u.size(0)
-    nt = u.size(1)
-    nx = u.size(2)
+    V[:, -1, :] = V_terminal
 
-    u = u.reshape(batchsize, nt, nx)
-    dt = D / (nt-1)
-    dx = D / (nx)
+    u = u.detach()
     rhot = (rho[:, 1:, :] - rho[:, :-1, :]) / dt
     rhox = (rho[:, :, :] - torch.cat((rho[:, :, [-1]], rho[:, :, :-1]), -1)) / dx
     ux = (u[:, :, :] - torch.cat((u[:, :, [-1]], u[:, :, :-1]), -1)) / dx
 
-    f = rhot + (rhox*u + rho*ux)[:, 1:, :]
+    f = rhot + (rhox * u + rho * ux)[:, 1:, :]
     return f
 
 def FDM_nonsep_V(V, rho, D=1):
 
     rho = rho.to("cuda:0")
-    batchsize = rho.size(0)
-    nt = rho.size(1)
-    nx = rho.size(2)
-
-    rho = rho.reshape(batchsize, nt, nx)
-    dt = D / (nt - 1)
-    dx = D / (nx)
+    n_samples, nt, nx = rho.shape
+    dx, dt = 1 / nx, 1 / nt
 
     Vt = (V[:, 1:, :] - V[:, :-1, :]) / dt
     Vx = (V[:, :, 1:] - V[:, :, :-1]) / dx

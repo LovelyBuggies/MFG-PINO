@@ -1,10 +1,19 @@
-# PINO
+# MFG-PINO
 
-## Change rho or V
+Source code for the paper: Physics-Informed Neural Operator for Coupled Forward-Backward Partial Differential Equations.
 
-change model in train_burgers.py
-change the PINO_loss_V or PINO_loss in train_2d.py
+## Change Hyperparams
 
-## Change reward functions
+### Couple or not?
 
-change the V calculation in losses.py
+Select make_large_loader or make_loader in `train_burgers.py`
+Change the PINO_loss_rho's params in `train_2d.py`
+
+### Train rho or V?
+
+Change model in `train_burgers.py`
+Change the PINO_loss_V or PINO_loss_rho in `train_2d.py`
+
+### Reward Function
+
+Change the V calculation in `losses.py`
