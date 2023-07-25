@@ -27,7 +27,7 @@ train:
   ic_loss: 10
   f_loss: 50
   xy_loss: 0.0
-  save_dir: 'test-V'
+  save_dir: 'test'
   save_name: 'test-V.pt'
 
 log:

@@ -24,11 +24,11 @@ train:
   milestones: [150, 300, 450]
   base_lr: 0.005
   scheduler_gamma: 0.5
-  ic_loss: 5
-  f_loss: 0.1
+  ic_loss: 30.0
+  f_loss: 10.
   xy_loss: 0.0
-  save_dir: 'lwr-FDM'
-  save_name: 'lwr-0.5u-pretrain-eqn.pt'
+  save_dir: 'test'
+  save_name: 'test-rho.pt'
 
 log:
   project: PINO-train

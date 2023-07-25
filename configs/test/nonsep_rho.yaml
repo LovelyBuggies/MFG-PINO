@@ -16,6 +16,7 @@ model:
   modes2: [5, 5, 5, 5]
   fc_dim: 64
   act: gelu
+  num_pad: 4
 
 test:
   batchsize: 1

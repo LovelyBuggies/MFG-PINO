@@ -70,9 +70,17 @@ class BurgersLoader(object):
         self.v = dataloader.read_field('visc').item()
         # plot_3d(8, 8, torch.transpose(torch.squeeze(self.c, 0), 0, 1).cpu().detach().numpy(), 'V')
         try:
+            self.dummy = dataloader_v.read_field('input')
             self.c = dataloader_v.read_field('output')
         except:
             print('no C feeded')
+
+    def make_large_loader(self, n_sample, batch_size, start=0, train=True):
+        self.x_data = torch.cat((self.x_data, self.dummy), dim=1)
+        self.s += self.dummy.shape[1]
+        self.y_data = torch.cat((self.y_data, self.c), dim=2)
+        loader = self.make_loader(n_sample, batch_size, start, train)
+        return loader
 
     def make_loader(self, n_sample, batch_size, start=0, train=True):
         Xs = self.x_data[start:start + n_sample]
@@ -84,6 +92,7 @@ class BurgersLoader(object):
         else:
             gridx = torch.tensor(np.linspace(0, 1, self.s), dtype=torch.float)
             gridt = torch.tensor(np.linspace(0, 1, self.T + 1)[1:], dtype=torch.float)
+
         gridx = gridx.reshape(1, 1, self.s)
         gridt = gridt.reshape(1, self.T, 1)
 

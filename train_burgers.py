@@ -15,7 +15,7 @@ def run(args, config):
     dataset = BurgersLoader(data_config['datapath'], data_config['datapath_V'],
                             nx=data_config['nx'], nt=data_config['nt'],
                             sub=data_config['sub'], sub_t=data_config['sub_t'], new=True)
-    train_loader = dataset.make_loader(n_sample=data_config['n_sample'],
+    train_loader = dataset.make_large_loader(n_sample=data_config['n_sample'],
                                        batch_size=config['train']['batchsize'],
                                        start=data_config['offset'])
 
@@ -57,7 +57,7 @@ def test(config):
     dataset = BurgersLoader(data_config['datapath'], data_config['datapath_V'],
                             nx=data_config['nx'], nt=data_config['nt'],
                             sub=data_config['sub'], sub_t=data_config['sub_t'], new=True)
-    dataloader = dataset.make_loader(n_sample=data_config['n_sample'],
+    dataloader = dataset.make_large_loader(n_sample=data_config['n_sample'],
                                      batch_size=config['test']['batchsize'],
                                      start=data_config['offset'])
 
@@ -72,6 +72,7 @@ def test(config):
         ckpt = torch.load(ckpt_path)
         model.load_state_dict(ckpt['model'])
         print('Weights loaded from %s' % ckpt_path)
+
     eval_burgers(model, dataloader, dataset.v, config, device)
 
 

@@ -42,20 +42,23 @@ def train_2d_burger(model,
         train_loss = 0.0
         train_bou = 0.0
 
-        rho_batch, rho_label_batch = list(), list()
+        output_batch, output_label_batch = list(), list()
         for x, y in train_loader:
             x, y = x.to(rank), y.to(rank)
+            n_samples, nt, nx = y.shape
+            nx = int((nx - 1) / 2)
+
             out = model(x).reshape(y.shape)
-            rho_batch.append(out)
-            rho_label_batch.append(y)
+            output_batch.append(out)
+            output_label_batch.append(y)
 
             data_loss = myloss(out, y)
+            rho_loss_u, rho_loss_f = PINO_loss_rho(out[:, :, :nx], x[:, 0, :nx, 0], out[:, :, nx:])
+            V_loss_u, V_loss_f = PINO_loss_V(out[:, :, nx:], x[:, 0, nx:, 0], out[:, :, :nx])
+            loss_u = rho_loss_u + V_loss_u
+            loss_f = rho_loss_f + V_loss_f
 
-            loss_u, loss_f = PINO_loss_rho(out, x[:, 0, :, 0], c)
-            # loss_u, loss_f = PINO_loss_V(out, x[:, 0, :, 0], c)
-
-            # total_loss = loss_u * ic_weight + loss_f * f_weight + data_loss * data_weight
-            total_loss = loss_u * ic_weight + loss_f * f_weight
+            total_loss = loss_u * ic_weight + loss_f * f_weight + data_loss * data_weight
             optimizer.zero_grad()
             total_loss.backward()
             optimizer.step()
@@ -65,12 +68,12 @@ def train_2d_burger(model,
             train_loss += total_loss.item()
             train_bou += loss_u.item()
 
-        rho = torch.stack(rho_batch)
-        rho_label = torch.stack(rho_label_batch)
+        output = torch.stack(output_batch)
+        output_label = torch.stack(output_label_batch)
         if i != 0:
-            gap_hist.append(float(abs(rho - tmp).mean()))
-            loss_hist.append(float(abs(rho - rho_label).mean()))
-        tmp = rho
+            gap_hist.append(float(abs(output - tmp).mean()))
+            loss_hist.append(float(abs(output - output_label).mean()))
+        tmp = output
 
         scheduler.step()
         data_l2 /= len(train_loader)

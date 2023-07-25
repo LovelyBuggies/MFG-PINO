@@ -16,10 +16,9 @@ def eval_burgers(model,
                  config,
                  device,
                  use_tqdm=True):
-    model.eval()
     myloss = LpLoss(size_average=True)
     if use_tqdm:
-        pbar = tqdm(dataloader, dynamic_ncols=True, smoothing=0.05)
+        pbar = tqdm(dataloader, dynamic_ncols=True, smoothing=0.1)
     else:
         pbar = dataloader
 
@@ -27,10 +26,10 @@ def eval_burgers(model,
     f_err = []
     for x, y in pbar:
         x, y = x.to(device), y.to(device)
-        print(x.shape, y.shape)
         out = model(x).reshape(y.shape)
         out = torch.transpose(torch.squeeze(out, 0), 0, 1).cpu().detach().numpy()
         plot_3d(8, 8, out[:8, :], 'pre')
+        plot_3d(8, 8, out[8:16, :], 'pre')
         # sio.savemat('rho.mat', {'rho': out})
         # data_loss = myloss(out, y)
         # loss_u, f_loss = PINO_loss_V(out, x[:, 0, :, 0], v)
