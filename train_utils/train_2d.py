@@ -57,6 +57,8 @@ def train_2d_burger(model,
             V_loss_u, V_loss_f = PINO_loss_V(out[:, :, nx:], x[:, 0, nx:, 0], out[:, :, :nx])
             loss_u = rho_loss_u + V_loss_u
             loss_f = rho_loss_f + V_loss_f
+            # loss_u, loss_f = PINO_loss_rho(out, x[:, 0, :, 0], c)
+            # loss_u, loss_f = PINO_loss_V(out, x[:, 0, :, 0], c)
 
             total_loss = loss_u * ic_weight + loss_f * f_weight + data_loss * data_weight
             optimizer.zero_grad()
