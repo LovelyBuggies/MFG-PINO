@@ -2,18 +2,26 @@
 
 Source code for the paper: Physics-Informed Neural Operator for Coupled Forward-Backward Partial Differential Equations.
 
+```
+// Put data to ./data/
+python train_burgers.py --config_path configs/pretrain/nonsep_rho.yaml --mode train
+python train_burgers.py --config_path configs/test/nonsep_rho.yaml --mode test
+```
+
 ## Change Hyperparams
 
 ### Couple or not?
 
-Select make_large_loader or make_loader in `train_burgers.py`
-Change the PINO_loss_rho's params in `train_2d.py`
+Use the rho config in `configs/pretrain` and `configs/test`;
+Select make_large_loader or make_loader in `train_burgers.py`;
+Change the PINO_loss in `train_2d.py`.
 
 ### Train rho or V?
 
-Change model in `train_burgers.py`
-Change the PINO_loss_V or PINO_loss_rho in `train_2d.py`
+Change the `config_path` argument;
+Change model in `train_burgers.py`;
+Change the PINO_loss in `train_2d.py`.
 
 ### Reward Function
 
-Change the V calculation in `losses.py`
+Change the V calculation in `losses.py`.

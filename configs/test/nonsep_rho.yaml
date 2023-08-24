@@ -1,7 +1,7 @@
 data:
   name: 'PINO'
-  datapath: '../data/non-sep-rhos.mat'
-  datapath_V: '../data/non-sep-Vs.mat'
+  datapath: './data/non-sep-rhos.mat'
+  datapath_V: './data/non-sep-Vs.mat'
   total_num: 1
   offset: 0
   n_sample: 1

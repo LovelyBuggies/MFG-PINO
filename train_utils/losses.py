@@ -51,8 +51,8 @@ class LpLoss(object):
 
 def FDM_nonsep_u(rho, u, D=1):
     n_samples, nt, nx = rho.shape
-    V = torch.zeros([n_samples, nt + 1, nx + 1], dtype=torch.float32).to("cuda:0")
-    u = torch.zeros([n_samples, nt, nx], dtype=torch.float32).to("cuda:0")
+    V = torch.zeros([n_samples, nt + 1, nx + 1], dtype=torch.float32)
+    u = torch.zeros([n_samples, nt, nx], dtype=torch.float32)
     dx, dt = 1 / nx, 1 / nt
     for t in range(nt - 1, -1, -1):
         for i in range(nx):
@@ -81,7 +81,6 @@ def FDM_nonsep_u(rho, u, D=1):
 
 def FDM_nonsep_V(V, rho, D=1):
 
-    rho = rho.to("cuda:0")
     n_samples, nt, nx = rho.shape
     dx, dt = 1 / nx, 1 / nt
 

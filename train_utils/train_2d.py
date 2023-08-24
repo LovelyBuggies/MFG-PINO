@@ -44,7 +44,6 @@ def train_2d_burger(model,
 
         output_batch, output_label_batch = list(), list()
         for x, y in train_loader:
-            x, y = x.to(rank), y.to(rank)
             n_samples, nt, nx = y.shape
             nx = int((nx - 1) / 2)
 
