@@ -1,8 +1,6 @@
 # MFG-PINO
 
-Source code for the paper: 
-- Physics-Informed Neural Operator for Coupled Forward-Backward Partial Differential Equations
-- Scalable Learning for Spatiotemporal Mean-Field Games using Physics-Informed Neural Operator
+Scalable Learning for Spatiotemporal Mean-Field Games using Physics-Informed Neural Operator
 
 ```
 // Put data to ./data/
