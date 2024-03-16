@@ -1,6 +1,8 @@
 # MFG-PINO
 
-Code for the paper: Scalable Learning for Spatiotemporal Mean-Field Games using Physics-Informed Neural Operator
+Code for the paper: Scalable Learning for Spatiotemporal Mean-Field Games using Physics-Informed Neural Operator.
+
+If you find it helpful, please cite us.
 
 ```
 @Article{math12060803,
@@ -16,6 +18,8 @@ ISSN = {2227-7390},
 DOI = {10.3390/math12060803}
 }
 ```
+
+## How to Run
 
 ```
 // Put data to ./data/
